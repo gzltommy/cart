@@ -24,7 +24,7 @@ const QPS = 100
 
 func main() {
 	// 配置中心
-	consulConfig, err := common.GetConsulConfig(common.Consul_Host, 8900, "/micro/config")
+	consulConfig, err := common.GetConsulConfig(common.Consul_Host, 8500, "/micro/config")
 	if err != nil {
 		panic(err)
 	}
@@ -32,7 +32,7 @@ func main() {
 	// 注册中心
 	consulRegistry := consul.NewRegistry(func(options *registry.Options) {
 		options.Addrs = []string{
-			fmt.Sprintf("%s:%d", common.Consul_Host, 8900),
+			fmt.Sprintf("%s:%d", common.Consul_Host, 8500),
 		}
 	})
 
@@ -87,7 +87,7 @@ func main() {
 	service := micro.NewService(
 		micro.Name("go.micro.service.cart"),
 		micro.Version("latest"),
-		//micro.Address("0.0.0.0:8087"),
+		//micro.Address("localhost:8086"),
 
 		//添加 consul 作为注册中心
 		micro.Registry(consulRegistry),
@@ -103,8 +103,10 @@ func main() {
 	service.Init()
 
 	// 注册 Handler
-	cart.RegisterCartHandler(service.Server(), &handler.Cart{CartDataService: dataService})
-
+	err = cart.RegisterCartHandler(service.Server(), &handler.Cart{CartDataService: dataService})
+	if err != nil {
+		log.Fatal(err)
+	}
 	// 开启服务
 	if err := service.Run(); err != nil {
 		log.Fatal(err)
